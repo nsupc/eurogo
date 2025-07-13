@@ -22,7 +22,7 @@ type NewTelegram struct {
 
 type DeleteTelegram struct {
 	Recipient string `json:"recipient"`
-	ID        string `json:"id"`
+	Id        string `json:"id"`
 }
 
 type Dispatch struct {
@@ -53,10 +53,10 @@ type EditDispatch struct {
 }
 
 type DispatchStatus struct {
-	ID         int       `json:"id"`
+	Id         int       `json:"id"`
 	Action     string    `json:"action"`
 	Status     string    `json:"status"`
-	DispatchID int       `json:"dispatch_id"`
+	DispatchId int       `json:"dispatch_id"`
 	Error      string    `json:"error"`
 	CreatedAt  time.Time `json:"created_at"`
 	ModifiedAt time.Time `json:"modified_at"`
@@ -69,7 +69,7 @@ type RmbPost struct {
 }
 
 type Template struct {
-	ID          string    `json:"id"`
+	Id          string    `json:"id"`
 	Nation      string    `json:"nation"`
 	Tgid        int       `json:"tgid"`
 	Key         string    `json:"key"`
@@ -78,8 +78,15 @@ type Template struct {
 	ModifiedAt  time.Time `json:"modified_at"`
 }
 
-type NewOrEditTemplate struct {
-	ID          string `json"-"`
+type NewTemplate struct {
+	Nation      string `json:"nation"`
+	Tgid        int    `json:"tgid"`
+	Key         string `json:"key"`
+	Description string `json:"description"`
+}
+
+type EditTemplate struct {
+	Id          string `json:"-"`
 	Nation      string `json:"nation"`
 	Tgid        int    `json:"tgid"`
 	Key         string `json:"key"`

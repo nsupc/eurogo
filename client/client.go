@@ -194,29 +194,29 @@ func (c *Client) DeleteTelegram(t models.DeleteTelegram) error {
 }
 
 func (c *Client) dispatch(method string, endpoint string, data []byte) (models.DispatchStatus, error) {
-	status := models.DispatchStatus{}
+	s := models.DispatchStatus{}
 
 	resp, err := c.makeRequest(method, endpoint, data)
 	if err != nil {
-		return status, err
+		return s, err
 	}
 
 	if resp.StatusCode != 201 {
 		errorText, _ := io.ReadAll(resp.Body)
-		return status, fmt.Errorf("%d: %s", resp.StatusCode, errorText)
+		return s, fmt.Errorf("%d: %s", resp.StatusCode, errorText)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return status, err
+		return s, err
 	}
 
-	err = json.Unmarshal(body, &status)
+	err = json.Unmarshal(body, &s)
 	if err != nil {
-		return status, err
+		return s, err
 	}
 
-	return status, nil
+	return s, nil
 }
 
 func (c *Client) CreateDispatch(d models.NewDispatch) (models.DispatchStatus, error) {
@@ -243,4 +243,56 @@ func (c *Client) DeleteDispatch(id int) (models.DispatchStatus, error) {
 	endpoint := fmt.Sprintf("/dispatches/%d", id)
 
 	return c.dispatch("PUT", endpoint, []byte{})
+}
+
+func (c *Client) template(method string, endpoint string, statusCode int, data []byte) (models.Template, error) {
+	t := models.Template{}
+
+	resp, err := c.makeRequest(method, endpoint, data)
+	if err != nil {
+		return t, err
+	}
+
+	if resp.StatusCode != statusCode {
+		errorText, _ := io.ReadAll(resp.Body)
+		return t, fmt.Errorf("%d: %s", resp.StatusCode, errorText)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return t, err
+	}
+
+	err = json.Unmarshal(body, &t)
+	if err != nil {
+		return t, err
+	}
+
+	return t, nil
+}
+
+func (c *Client) GetTemplate(id string) (models.Template, error) {
+	endpoint := fmt.Sprintf("/templates/%s", id)
+
+	return c.template("GET", endpoint, 200, []byte{})
+}
+
+func (c *Client) CreateTemplate(t models.NewTemplate) (models.Template, error) {
+	data, err := json.Marshal(t)
+	if err != nil {
+		return models.Template{}, err
+	}
+
+	return c.template("POST", "/templates", 201, data)
+}
+
+func (c *Client) EditTemplate(t models.EditTemplate) (models.Template, error) {
+	data, err := json.Marshal(t)
+	if err != nil {
+		return models.Template{}, err
+	}
+
+	endpoint := fmt.Sprintf("/templates/%s", t.Id)
+
+	return c.template("PATCH", endpoint, 200, data)
 }
