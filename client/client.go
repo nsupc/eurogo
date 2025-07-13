@@ -117,6 +117,37 @@ func (c *Client) makeRequest(method string, endpoint string, data []byte) (*http
 	return resp, nil
 }
 
+func (c *Client) GetTelegrams() (models.TelegramList, error) {
+	t := models.TelegramList{}
+
+	err := c.validateToken()
+	if err != nil {
+		return t, err
+	}
+
+	resp, err := c.makeRequest("GET", "/telegrams", []byte{})
+	if err != nil {
+		return t, err
+	}
+
+	if resp.StatusCode != 200 {
+		errorText, _ := io.ReadAll(resp.Body)
+		return t, fmt.Errorf("%d: %s", resp.StatusCode, errorText)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return t, err
+	}
+
+	err = json.Unmarshal(body, &t)
+	if err != nil {
+		return t, err
+	}
+
+	return t, nil
+}
+
 // convenience wrapper around client.SendTelegrams() with a single telegram
 func (c *Client) SendTelegram(t models.NewTelegram) error {
 	telegrams := []models.NewTelegram{t}

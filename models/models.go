@@ -2,6 +2,16 @@ package models
 
 import "time"
 
+type TelegramList struct {
+	Recruitment []Telegram `json:"recruitment"`
+	Standard    []Telegram `json:"standard"`
+}
+
+type Telegram struct {
+	Recipient string `json:"recipient"`
+	Id        string `json:"id"`
+}
+
 type NewTelegram struct {
 	Sender    string `json:"sender"`
 	Recipient string `json:"recipient"`
