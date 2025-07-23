@@ -10,8 +10,6 @@ const (
 
 func (t Type) String() string {
 	switch t {
-	case 0:
-		return ""
 	case 1:
 		return "standard"
 	case 2:

@@ -1,8 +1,6 @@
-package models
+package dispatches
 
-import (
-	"time"
-)
+import "time"
 
 type Dispatch struct {
 	Id          int       `json:"id"`
@@ -31,7 +29,7 @@ type EditDispatch struct {
 	SubCategory int    `json:"subcategory"`
 }
 
-type DispatchStatus struct {
+type Status struct {
 	Id         int       `json:"id"`
 	Action     string    `json:"action"`
 	Status     string    `json:"status"`
@@ -41,33 +39,22 @@ type DispatchStatus struct {
 	ModifiedAt time.Time `json:"modified_at"`
 }
 
-type RmbPost struct {
-	Nation string `json:"nation"`
-	Region string `json:"region"`
-	Text   string `json:"text"`
+func New(nation string, title string, text string, category int, subcategory int) NewDispatch {
+	return NewDispatch{
+		nation,
+		title,
+		text,
+		category,
+		subcategory,
+	}
 }
 
-type Template struct {
-	Id          string    `json:"id"`
-	Nation      string    `json:"nation"`
-	Tgid        int       `json:"tgid"`
-	Key         string    `json:"key"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	ModifiedAt  time.Time `json:"modified_at"`
-}
-
-type NewTemplate struct {
-	Nation      string `json:"nation"`
-	Tgid        int    `json:"tgid"`
-	Key         string `json:"key"`
-	Description string `json:"description"`
-}
-
-type EditTemplate struct {
-	Id          string `json:"-"`
-	Nation      string `json:"nation"`
-	Tgid        int    `json:"tgid"`
-	Key         string `json:"key"`
-	Description string `json:"description"`
+func Edit(id int, title string, text string, category int, subcategory int) EditDispatch {
+	return EditDispatch{
+		id,
+		title,
+		text,
+		category,
+		subcategory,
+	}
 }
