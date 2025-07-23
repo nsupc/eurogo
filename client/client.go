@@ -10,8 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nsupc/eurogo/models"
-	telegrams "github.com/nsupc/eurogo/telegrams"
+	"github.com/nsupc/eurogo/dispatches"
+	"github.com/nsupc/eurogo/telegrams"
+	"github.com/nsupc/eurogo/templates"
 )
 
 type Client struct {
@@ -95,7 +96,7 @@ func (c *Client) refreshToken() error {
 	return nil
 }
 
-func (c *Client) makeRequest(method string, endpoint string, data []byte) (*http.Response, error) {
+func (c *Client) makeRequest(method string, endpoint string, body io.Reader) (*http.Response, error) {
 	err := c.validateToken()
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func (c *Client) makeRequest(method string, endpoint string, data []byte) (*http
 
 	url := fmt.Sprintf("%s%s", c.baseUrl, endpoint)
 
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +128,7 @@ func (c *Client) GetTelegrams() (telegrams.List, error) {
 		return t, err
 	}
 
-	resp, err := c.makeRequest("GET", "/telegrams", []byte{})
+	resp, err := c.makeRequest("GET", "/telegrams", http.NoBody)
 	if err != nil {
 		return t, err
 	}
@@ -169,7 +170,7 @@ func (c *Client) SendTelegrams(t []telegrams.NewTelegram) error {
 		}
 	}
 
-	resp, err := c.makeRequest("POST", "/telegrams", data)
+	resp, err := c.makeRequest("POST", "/telegrams", bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
@@ -188,7 +189,7 @@ func (c *Client) DeleteTelegram(t telegrams.DeleteTelegram) error {
 		return err
 	}
 
-	resp, err := c.makeRequest("DELETE", "/telegrams", data)
+	resp, err := c.makeRequest("DELETE", "/telegrams", bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
@@ -201,10 +202,10 @@ func (c *Client) DeleteTelegram(t telegrams.DeleteTelegram) error {
 	return nil
 }
 
-func (c *Client) dispatch(method string, endpoint string, data []byte) (models.DispatchStatus, error) {
-	s := models.DispatchStatus{}
+func (c *Client) dispatch(method string, endpoint string, data []byte) (dispatches.Status, error) {
+	s := dispatches.Status{}
 
-	resp, err := c.makeRequest(method, endpoint, data)
+	resp, err := c.makeRequest(method, endpoint, bytes.NewBuffer(data))
 	if err != nil {
 		return s, err
 	}
@@ -227,19 +228,19 @@ func (c *Client) dispatch(method string, endpoint string, data []byte) (models.D
 	return s, nil
 }
 
-func (c *Client) CreateDispatch(d models.NewDispatch) (models.DispatchStatus, error) {
+func (c *Client) CreateDispatch(d dispatches.NewDispatch) (dispatches.Status, error) {
 	data, err := json.Marshal(d)
 	if err != nil {
-		return models.DispatchStatus{}, err
+		return dispatches.Status{}, err
 	}
 
 	return c.dispatch("POST", "/dispatches", data)
 }
 
-func (c *Client) EditDispatch(d models.EditDispatch) (models.DispatchStatus, error) {
+func (c *Client) EditDispatch(d dispatches.EditDispatch) (dispatches.Status, error) {
 	data, err := json.Marshal(d)
 	if err != nil {
-		return models.DispatchStatus{}, err
+		return dispatches.Status{}, err
 	}
 
 	endpoint := fmt.Sprintf("/dispatches/%d", d.Id)
@@ -247,16 +248,16 @@ func (c *Client) EditDispatch(d models.EditDispatch) (models.DispatchStatus, err
 	return c.dispatch("PUT", endpoint, data)
 }
 
-func (c *Client) DeleteDispatch(id int) (models.DispatchStatus, error) {
+func (c *Client) DeleteDispatch(id int) (dispatches.Status, error) {
 	endpoint := fmt.Sprintf("/dispatches/%d", id)
 
 	return c.dispatch("PUT", endpoint, []byte{})
 }
 
-func (c *Client) template(method string, endpoint string, statusCode int, data []byte) (models.Template, error) {
-	t := models.Template{}
+func (c *Client) template(method string, endpoint string, statusCode int, reqBody io.Reader) (templates.Template, error) {
+	t := templates.Template{}
 
-	resp, err := c.makeRequest(method, endpoint, data)
+	resp, err := c.makeRequest(method, endpoint, reqBody)
 	if err != nil {
 		return t, err
 	}
@@ -279,28 +280,28 @@ func (c *Client) template(method string, endpoint string, statusCode int, data [
 	return t, nil
 }
 
-func (c *Client) GetTemplate(id string) (models.Template, error) {
+func (c *Client) GetTemplate(id string) (templates.Template, error) {
 	endpoint := fmt.Sprintf("/templates/%s", id)
 
-	return c.template("GET", endpoint, 200, []byte{})
+	return c.template("GET", endpoint, 200, http.NoBody)
 }
 
-func (c *Client) CreateTemplate(t models.NewTemplate) (models.Template, error) {
+func (c *Client) CreateTemplate(t templates.NewTemplate) (templates.Template, error) {
 	data, err := json.Marshal(t)
 	if err != nil {
-		return models.Template{}, err
+		return templates.Template{}, err
 	}
 
-	return c.template("POST", "/templates", 201, data)
+	return c.template("POST", "/templates", 201, bytes.NewBuffer(data))
 }
 
-func (c *Client) EditTemplate(t models.EditTemplate) (models.Template, error) {
+func (c *Client) EditTemplate(t templates.EditTemplate) (templates.Template, error) {
 	data, err := json.Marshal(t)
 	if err != nil {
-		return models.Template{}, err
+		return templates.Template{}, err
 	}
 
 	endpoint := fmt.Sprintf("/templates/%s", t.Id)
 
-	return c.template("PATCH", endpoint, 200, data)
+	return c.template("PATCH", endpoint, 200, bytes.NewBuffer(data))
 }
