@@ -1,29 +1,8 @@
 package models
 
-import "time"
-
-type TelegramList struct {
-	Recruitment []Telegram `json:"recruitment"`
-	Standard    []Telegram `json:"standard"`
-}
-
-type Telegram struct {
-	Recipient string `json:"recipient"`
-	Id        string `json:"id"`
-}
-
-type NewTelegram struct {
-	Sender    string `json:"sender"`
-	Recipient string `json:"recipient"`
-	Id        string `json:"id"`
-	Secret    string `json:"secret_key"`
-	Type      string `json:"tg_type"`
-}
-
-type DeleteTelegram struct {
-	Recipient string `json:"recipient"`
-	Id        string `json:"id"`
-}
+import (
+	"time"
+)
 
 type Dispatch struct {
 	Id          int       `json:"id"`
