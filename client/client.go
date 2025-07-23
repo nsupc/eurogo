@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/nsupc/eurogo/models"
+	telegrams "github.com/nsupc/eurogo/telegrams"
 )
 
 type Client struct {
@@ -117,8 +119,8 @@ func (c *Client) makeRequest(method string, endpoint string, data []byte) (*http
 	return resp, nil
 }
 
-func (c *Client) GetTelegrams() (models.TelegramList, error) {
-	t := models.TelegramList{}
+func (c *Client) GetTelegrams() (telegrams.List, error) {
+	t := telegrams.List{}
 
 	err := c.validateToken()
 	if err != nil {
@@ -149,16 +151,22 @@ func (c *Client) GetTelegrams() (models.TelegramList, error) {
 }
 
 // convenience wrapper around client.SendTelegrams() with a single telegram
-func (c *Client) SendTelegram(t models.NewTelegram) error {
-	telegrams := []models.NewTelegram{t}
+func (c *Client) SendTelegram(t telegrams.NewTelegram) error {
+	telegrams := []telegrams.NewTelegram{t}
 
 	return c.SendTelegrams(telegrams)
 }
 
-func (c *Client) SendTelegrams(t []models.NewTelegram) error {
+func (c *Client) SendTelegrams(t []telegrams.NewTelegram) error {
 	data, err := json.Marshal(t)
 	if err != nil {
 		return err
+	}
+
+	for _, tg := range t {
+		if tg.Type == telegrams.Undefined {
+			return errors.New("telegram type is undefined")
+		}
 	}
 
 	resp, err := c.makeRequest("POST", "/telegrams", data)
@@ -174,7 +182,7 @@ func (c *Client) SendTelegrams(t []models.NewTelegram) error {
 	return nil
 }
 
-func (c *Client) DeleteTelegram(t models.DeleteTelegram) error {
+func (c *Client) DeleteTelegram(t telegrams.DeleteTelegram) error {
 	data, err := json.Marshal(t)
 	if err != nil {
 		return err
